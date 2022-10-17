@@ -1,0 +1,17 @@
+test
+.idea/.gitignore
+.idea/.name
+.idea/aws.xml
+.idea/compiler.xml
+.idea/jarRepositories.xml
+.idea/misc.xml
+.idea/uiDesigner.xml
+.idea/vcs.xml
+target/classes/org/camamonte/junit5/example/model/Account$AccountBuilder.class
+target/classes/org/camamonte/junit5/example/model/Account.class
+target/test-classes/org/camamonte/junit5/example/model/AccountTest.class
+.idea/sonarlint/issuestore/index.pb
+.idea/sonarlint/issuestore/b/b/bb8ad9599b270738cd09f45dac8a8deee2cc01c6
+target/classes/org/camamonte/junit5/example/exception/InsuficientMoneyAvaliable.class
+target/classes/org/camamonte/junit5/example/model/Bank$BankBuilder.class
+target/classes/org/camamonte/junit5/example/model/Bank.class
