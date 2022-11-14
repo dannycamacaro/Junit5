@@ -2,9 +2,17 @@ package org.camamonte.junit5.example.model;
 
 import org.camamonte.junit5.example.exception.InsuficientMoneyAvaliable;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvFileSource;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,6 +28,8 @@ class AccountTest {
     public static final BigDecimal DEBIT = new BigDecimal("21.12345");
     public static final BigDecimal DEBIT_MAX = new BigDecimal("3221.12345");
     public static final String CHASE_BANK = "Chase Bank";
+
+    Account account;
 
     @Test
     @DisplayName("Valid account name")
@@ -136,7 +146,7 @@ class AccountTest {
 
         assertEquals(2, bank.getAccounts().size());
         assertEquals(CHASE_BANK, accountOne.getBank().getName());
-        assertEquals(PERSON_NAME,bank.getAccounts().stream().filter((x -> x.getPerson().equalsIgnoreCase(PERSON_NAME))).findFirst().get().getPerson());
+        assertEquals(PERSON_NAME, bank.getAccounts().stream().filter((x -> x.getPerson().equalsIgnoreCase(PERSON_NAME))).findFirst().get().getPerson());
     }
 
     @Test
@@ -151,9 +161,15 @@ class AccountTest {
         assertAll(
                 // to avoid that the message on each msg be created you can introduce a lambda expression to avoid crea the string msg every time,
                 // with a lambda expression we create the string only if the test case fail.
-                ()-> {assertEquals(2, bank.getAccounts().size(),"the account list is not working fine!!!");},
-                ()-> {assertEquals(CHASE_BANK, accountOne.getBank().getName(),()-> "this is the best way for a message");},
-                ()-> {assertEquals(PERSON_NAME,bank.getAccounts().stream().filter((x -> x.getPerson().equalsIgnoreCase(PERSON_NAME))).findFirst().get().getPerson());}
+                () -> {
+                    assertEquals(2, bank.getAccounts().size(), "the account list is not working fine!!!");
+                },
+                () -> {
+                    assertEquals(CHASE_BANK, accountOne.getBank().getName(), () -> "this is the best way for a message");
+                },
+                () -> {
+                    assertEquals(PERSON_NAME, bank.getAccounts().stream().filter((x -> x.getPerson().equalsIgnoreCase(PERSON_NAME))).findFirst().get().getPerson());
+                }
         );
     }
 
@@ -173,23 +189,100 @@ class AccountTest {
     }
 
     @BeforeAll // this method will be executed at the begining of everything
-    public static void init(){
+    public static void init() {
         System.out.println("first method executed");
     }
 
     @AfterAll // this method will be executed at the begining of everything
-    public static void finalExecution(){
+    public static void finalExecution() {
         System.out.println("last method to be executed");
     }
 
     @BeforeEach // this method will be executed at the begining of each method
-    public void initEachExecution(){
+    public void initEachExecution() {
         //you can initialize each account here before each test case.
         System.out.println("first execution before each method");
+        account = Account.builder().person(PERSON_NAME).balance(BALANCE).build();
     }
 
     @AfterEach // this method will be executed at the final of each method
-    public void afterEachExecution(){
+    public void afterEachExecution() {
         System.out.println("last method after each execution");
+    }
+
+    @EnabledOnOs(OS.WINDOWS)
+    public void testForEspecifiedOs() {
+        //you can initialize each account here before each test case.
+        System.out.println("Only will be executed on windows OS");
+    }
+
+    @EnabledOnJre(JRE.JAVA_19)
+    public void testForEspecifiedJre() {
+        //you can initialize each account here before each test case.
+        System.out.println("Only will be executed on windows OS");
+    }
+
+    @EnabledIfSystemProperty(named = "environment", matches = "prod")
+    public void testForEspecifiedSystemProperty() {
+        //you can initialize each account here before each test case.
+        assertEquals("prod", System.getProperty("enviroment"));
+    }
+
+    @EnabledIfEnvironmentVariable(named = "environment", matches = "prod")
+    public void testForEspecifiedEnvironmentProperty() {
+        //you can initialize each account here before each test case.
+        assertEquals("prod", System.getenv("enviroment"));
+    }
+
+    @ParameterizedTest
+    public void testParametized() {
+        //you can initialize each account here before each test case.
+        assertEquals("prod", System.getenv("enviroment"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"500", "200", "700", "1000"})
+    void accountDebitParametized(String ammount) {
+        account.debit(new BigDecimal(ammount));
+        assertNotNull(account.getBalance());
+        assertTrue(account.getBalance().compareTo(BigDecimal.ZERO) > 0);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1,500", "2,200", "3,700", "4,1000"})
+    void accountDebitParametizedCsvSource(String index, String ammount) {
+        System.out.println("Index :" + index);
+        account.debit(new BigDecimal(ammount));
+        assertNotNull(account.getBalance());
+        assertTrue(account.getBalance().compareTo(BigDecimal.ZERO) > 0);
+    }
+
+    @ParameterizedTest
+    @CsvFileSource(resources = {"/data.csv"})
+    void accountDebitParametizedCsvFile(String ammount) {
+        account.debit(new BigDecimal(ammount));
+        assertNotNull(account.getBalance());
+        assertTrue(account.getBalance().compareTo(BigDecimal.ZERO) > 0);
+    }
+
+    @ParameterizedTest
+    @CsvFileSource(resources = {"/data.csv"})
+    void accountDebitParametizedCsvFile(String index, String ammount, String description) {
+        System.out.println("The index is : " + index + " and the description : " + description);
+        account.debit(new BigDecimal(ammount));
+        assertNotNull(account.getBalance());
+        assertTrue(account.getBalance().compareTo(BigDecimal.ZERO) > 0);
+    }
+
+    @ParameterizedTest
+    @MethodSource("ammountList")
+    void accountDebitParametizedMethodSource(String ammount) {
+        account.debit(new BigDecimal(ammount));
+        assertNotNull(account.getBalance());
+        assertTrue(account.getBalance().compareTo(BigDecimal.ZERO) > 0);
+    }
+
+    private static List<String> ammountList() {
+        return Arrays.asList("500", "200", "700", "1000");
     }
 }
